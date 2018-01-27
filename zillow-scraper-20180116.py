@@ -15,11 +15,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+
 path_to_chromedriver = '/Users/payaj/Downloads/chromedriver'
-
-proxies = {'http': 'http://topagenets:Topagents1@us-wa.proxymesh.com:31280', 'https': 'http://topagenets:Topagents1@us-wa.proxymesh.com:31280'}
-headers = {'User-agent': 'Mozilla/5.0 (iPhone; U; CPU like Mac OS X; en) AppleWebKit/420+ (KHTML, like Gecko) Version/3.0 Mobile/1A543a Safari/419.3'}
-
 
 #"""################################################################# 3 Get the data by Agent ####################################################################
 
@@ -28,21 +25,22 @@ df = pd.read_csv('/Users/payaj/Downloads/zillow-bronx-agents-20180117.csv', dtyp
 driver = webdriver.Chrome(executable_path = path_to_chromedriver)
 
 ######### Below first for loop open the profile of each agent(one by one) in the browser ##########
-for index in range(12,len(df)):
+
+for index in range(len(df)):
     print df.loc[index,'SellersAgent1Url']
     try:
         time.sleep(5)
         driver.get('https://www.zillow.com'+df.loc[index,'SellersAgent1Url'])
+        time.sleep(20)
+        driver.execute_script("window.scrollTo(0, 2050)")
+        print "done scrolling"
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         totalPage=''
-        
-        ######## below code will find the pagination footer of the "past sales" table (2nd table) ########
+
         totalPage = soup.findAll('section', {'class': 'sales-history property-listings zsg-content-section'})[0].findAll('ul', {'class': 'pagination zsg-pagination'})[0]
         print 'Stage 1'
         pages = ''
         Reference = 0
-        ########### below for loop will get the last number of the page in the "past sales" table and save it in page in integer format##############################
-        ######################### then will save all the page number in "pages"
         for page in totalPage.findAll('a'):
             #pages.append(str(page.text))
             page = int(str(page.text))
@@ -51,23 +49,26 @@ for index in range(12,len(df)):
         print "Stage 2"
     except:
         print "Nothing on the page"
-        
-    ######## below for loop will call all the page numbers inside "pages" one by one ########
+
     for page in pages:
+        driver.execute_script("window.scrollTo(2050, 1800)")
         time.sleep(2)
+        driver.execute_script("window.scrollTo(1800, 2050)")
+
         soup = ''
         table = ' '
-        
-        ############## below code will click on the page number of the "past sales" table based on the for loop #############
         try:
             #wait = WebDriverWait(driver, 10)
             #NextButton = wait.until(EC.element_to_be_clickable((By.XPATH, "//section[@class='sales-history property-listings zsg-content-section']//a[text()="+str(page)+"]")))
             #driver.execute_script("arguments[0].click();", NextButton)
             driver.find_element_by_xpath("//section[@class='sales-history property-listings zsg-content-section']//a[text()="+str(page)+"]").click()
+            time.sleep(2)
+            driver.find_element_by_xpath("//section[@class='sales-history property-listings zsg-content-section']//a[text()=" + str(page) + "]").click()
+            time.sleep(2)
             print "Stage 3"
         except:
             print "No next"
-        ############### below section will have the html code for the table #################
+
         try:
             soup = BeautifulSoup(driver.page_source, 'html.parser')
             time.sleep(2)
@@ -75,8 +76,7 @@ for index in range(12,len(df)):
             print "Stage 4"
         except:
             print "Nothing in table"
-        
-        ############## below for loop will iterate through the first page of the table and will write the data in the csv (row by row) ##############
+
         for i in range(len(table)):
             time.sleep(3)
             Address, City, State, Zipcode, ListingUrl = "","","","",""
@@ -128,7 +128,7 @@ for index in range(12,len(df)):
 
             try:
                 args = Address, City, State, Zipcode, ListingUrl, SellersAgent1, BuyersAgent, ClosingDate, ClosingPrice, ClosingPrice2, SellersAgent1Url
-                with open('/Users/payaj/Downloads/zillow-agenttransactions-20180117.csv', 'a') as outfile:
+                with open('/Users/payaj/Downloads/zillow-westchesterzips-agenttransactions-20180126.csv', 'a') as outfile:
                     writer = csv.writer(outfile)
                     if Reference == 0:
                         writer.writerow(["Address", "City", "State", "Zipcode", "ListingUrl", "SellersAgent1", "BuyersAgent", "ClosingDate", "ClosingPrice", "ClosingPrice2", "SellersAgent1Url"])
@@ -138,9 +138,5 @@ for index in range(12,len(df)):
             if page % 10 == 0:
                 time.sleep(10 * random.random())
             Reference = page
-            ############################### the last for loop for one page of the table (which was writing data in a csv row by row ends here) ##############
         print ("page index: " + str(page))#"""
-        ###################### for loop that was changing the pages of the table ends here #######################
-   
-################### for loop that changes the agent profile from the csv ends here ##########################"""
-        
+

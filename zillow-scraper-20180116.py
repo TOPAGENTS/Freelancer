@@ -26,13 +26,15 @@ driver = webdriver.Chrome(executable_path = path_to_chromedriver)
 
 ######### Below first for loop open the profile of each agent(one by one) in the browser ##########
 
-for index in range(len(df)):
+for index in range(109,len(df)):
     print df.loc[index,'SellersAgent1Url']
     try:
-        time.sleep(5)
+        time.sleep(3)
         driver.get('https://www.zillow.com'+df.loc[index,'SellersAgent1Url'])
-        time.sleep(20)
-        driver.execute_script("window.scrollTo(0, 2050)")
+        time.sleep(10)
+        driver.execute_script("window.scrollTo(0, 1300)")
+        time.sleep(1)
+        driver.execute_script("window.scrollTo(1300, 2400)")
         print "done scrolling"
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         totalPage=''
@@ -51,16 +53,20 @@ for index in range(len(df)):
         print "Nothing on the page"
 
     for page in pages:
-        driver.execute_script("window.scrollTo(2050, 1800)")
-        time.sleep(2)
-        driver.execute_script("window.scrollTo(1800, 2050)")
-
         soup = ''
         table = ' '
+        driver.execute_script("window.scrollTo(2400, 1600)")
+        time.sleep(4)
         try:
-            #wait = WebDriverWait(driver, 10)
-            #NextButton = wait.until(EC.element_to_be_clickable((By.XPATH, "//section[@class='sales-history property-listings zsg-content-section']//a[text()="+str(page)+"]")))
-            #driver.execute_script("arguments[0].click();", NextButton)
+            driver.find_element_by_xpath("//section[@class='sales-history property-listings zsg-content-section']//a[text()="+str(page)+"]").click()
+            time.sleep(2)
+            driver.find_element_by_xpath("//section[@class='sales-history property-listings zsg-content-section']//a[text()=" + str(page) + "]").click()
+            time.sleep(2)
+            print "Stage 3"
+        except:
+            print "No next"
+        driver.execute_script("window.scrollTo(1600, 2400)")
+        try:
             driver.find_element_by_xpath("//section[@class='sales-history property-listings zsg-content-section']//a[text()="+str(page)+"]").click()
             time.sleep(2)
             driver.find_element_by_xpath("//section[@class='sales-history property-listings zsg-content-section']//a[text()=" + str(page) + "]").click()
@@ -139,4 +145,3 @@ for index in range(len(df)):
                 time.sleep(10 * random.random())
             Reference = page
         print ("page index: " + str(page))#"""
-

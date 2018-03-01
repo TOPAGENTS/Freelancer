@@ -26,65 +26,68 @@ driver = webdriver.Chrome(executable_path = path_to_chromedriver)
 
 ######### Below first for loop open the profile of each agent(one by one) in the browser ##########
 
-for index in range(109,len(df)):
+for index in range(1):#for index in range(522,len(df)):
     print df.loc[index,'SellersAgent1Url']
+    totalPage = ''
+    pages = ''
+    page = ''
     try:
-        time.sleep(3)
         driver.get('https://www.zillow.com'+df.loc[index,'SellersAgent1Url'])
-        time.sleep(10)
-        driver.execute_script("window.scrollTo(0, 1300)")
         time.sleep(1)
-        driver.execute_script("window.scrollTo(1300, 2400)")
+        driver.get('https://www.zillow.com'+df.loc[index,'SellersAgent1Url'])
+        time.sleep(2)
+
         print "done scrolling"
         soup = BeautifulSoup(driver.page_source, 'html.parser')
-        totalPage=''
+
 
         totalPage = soup.findAll('section', {'class': 'sales-history property-listings zsg-content-section'})[0].findAll('ul', {'class': 'pagination zsg-pagination'})[0]
         print 'Stage 1'
-        pages = ''
+
         Reference = 0
         for page in totalPage.findAll('a'):
             #pages.append(str(page.text))
             page = int(str(page.text))
-        pages = range(1,page+1)
-        page = ''
+
         print "Stage 2"
     except:
         print "Nothing on the page"
-
+    if page != '':
+        element = driver.find_element_by_xpath("//section[@class='sales-history property-listings zsg-content-section']//a[text()=1]")
+    else:
+        element = driver.find_element_by_xpath("//section[@class='sales-history property-listings zsg-content-section']")
+    driver.execute_script("arguments[0].scrollIntoView();", element)
+    time.sleep(1)
+    if page > 20:
+        page = 20
+    if page == '':
+        page = 1
+    pages = range(1,page+1)
+    page = ''
     for page in pages:
         soup = ''
         table = ' '
-        driver.execute_script("window.scrollTo(2400, 1600)")
-        time.sleep(4)
         try:
             driver.find_element_by_xpath("//section[@class='sales-history property-listings zsg-content-section']//a[text()="+str(page)+"]").click()
-            time.sleep(2)
+            time.sleep(1)
             driver.find_element_by_xpath("//section[@class='sales-history property-listings zsg-content-section']//a[text()=" + str(page) + "]").click()
-            time.sleep(2)
-            print "Stage 3"
-        except:
-            print "No next"
-        driver.execute_script("window.scrollTo(1600, 2400)")
-        try:
-            driver.find_element_by_xpath("//section[@class='sales-history property-listings zsg-content-section']//a[text()="+str(page)+"]").click()
-            time.sleep(2)
             driver.find_element_by_xpath("//section[@class='sales-history property-listings zsg-content-section']//a[text()=" + str(page) + "]").click()
-            time.sleep(2)
+            time.sleep(1)
+            driver.find_element_by_xpath("//section[@class='sales-history property-listings zsg-content-section']//a[text()=" + str(page) + "]").click()
+            driver.find_element_by_xpath("//section[@class='sales-history property-listings zsg-content-section']//a[text()=" + str(page) + "]").click()
+            time.sleep(1)
             print "Stage 3"
         except:
             print "No next"
 
         try:
             soup = BeautifulSoup(driver.page_source, 'html.parser')
-            time.sleep(2)
             table = soup.findAll('div', {'class': 'sales-history-table zsg-content-item property-listings-body'})[0].findAll('div', {'class': 'sh-row-body'})[0]
             print "Stage 4"
         except:
             print "Nothing in table"
 
         for i in range(len(table)):
-            time.sleep(3)
             Address, City, State, Zipcode, ListingUrl = "","","","",""
             Represent, SellersAgent1, BuyersAgent, ClosingDate, ClosingPrice = "", "", "", "", ""
             ClosingPrice2, SellersAgent1Url = "", ""
@@ -134,7 +137,7 @@ for index in range(109,len(df)):
 
             try:
                 args = Address, City, State, Zipcode, ListingUrl, SellersAgent1, BuyersAgent, ClosingDate, ClosingPrice, ClosingPrice2, SellersAgent1Url
-                with open('/Users/payaj/Downloads/zillow-westchesterzips-agenttransactions-20180126.csv', 'a') as outfile:
+                with open('/Users/payaj/Downloads/zillow-warnerLewis-transactions-20180209.csv', 'a') as outfile:
                     writer = csv.writer(outfile)
                     if Reference == 0:
                         writer.writerow(["Address", "City", "State", "Zipcode", "ListingUrl", "SellersAgent1", "BuyersAgent", "ClosingDate", "ClosingPrice", "ClosingPrice2", "SellersAgent1Url"])
